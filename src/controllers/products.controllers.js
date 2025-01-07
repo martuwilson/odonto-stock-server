@@ -27,5 +27,28 @@ const createProductTable = async (req, res) => {
 };
 
 ////////////////////////////////
+// Create a product
+const createProduct = async (req, res) => {
+    const { product_name, expiration_date, quantity } = req.body;
 
-export { createProductTable };
+    if(!product_name || !expiration_date || !quantity) {
+        return res.status(400).json({ error: "Todos los campos son obligatorios." });
+    }
+
+    try {
+        const newProduct = await pool.query(
+            `INSERT INTO stock (product_name, expiration_date, quantity) VALUES ($1, $2, $3) RETURNING *`,
+            [product_name, expiration_date, quantity]
+        );
+        res.status(201).json({
+            message: "Producto creado correctamente.",
+            product: newProduct.rows[0]
+        });
+        
+    } catch (error) {
+        console.error("Error al insertar producto:", error.message);
+        res.status(500).json({ error: "Error al insertar producto." });
+    }
+};
+
+export { createProductTable, createProduct };
