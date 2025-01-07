@@ -50,5 +50,24 @@ const createProduct = async (req, res) => {
         res.status(500).json({ error: "Error al insertar producto." });
     }
 };
+////////////////////////////////
+// GET all products
+const getAllProducts = async (req, res) => {
+    try {
+      const query = `
+        SELECT * FROM stock ORDER BY created_at DESC;
+      `;
+  
+      const result = await pool.query(query);
+  
+      res.status(200).json({
+        message: "Lista de productos obtenida exitosamente.",
+        products: result.rows,
+      });
+    } catch (error) {
+      console.error("Error al obtener los productos:", error.message);
+      res.status(500).json({ error: "Error al obtener los productos." });
+    }
+  };
 
-export { createProductTable, createProduct };
+export { createProductTable, createProduct, getAllProducts };
