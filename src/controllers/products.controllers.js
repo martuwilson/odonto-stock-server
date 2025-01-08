@@ -70,4 +70,48 @@ const getAllProducts = async (req, res) => {
     }
   };
 
-export { createProductTable, createProduct, getAllProducts };
+////////////////////////////////
+// Edit a product
+const editProduct = async (req, res) => {
+    const { id } = req.params; // ID del producto a editar
+    const { product_name, expiration_date, quantity } = req.body;
+  
+    if (!id || !product_name || !quantity) {
+      return res.status(400).json({ error: "Faltan campos obligatorios." });
+    }
+  
+    try {
+      const query = `
+        UPDATE stock
+        SET 
+          product_name = $1,
+          expiration_date = $2,
+          quantity = $3,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = $4
+        RETURNING *;
+      `;
+  
+      const values = [product_name, expiration_date || null, quantity, id];
+      const result = await pool.query(query, values);
+  
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "Producto no encontrado." });
+      }
+  
+      res.status(200).json({
+        message: "Producto actualizado exitosamente.",
+        product: result.rows[0],
+      });
+    } catch (error) {
+      console.error("Error al actualizar el producto:", error.message);
+      res.status(500).json({ error: "Error al actualizar el producto." });
+    }
+  };
+
+export {
+    createProductTable,
+    createProduct,
+    getAllProducts,
+    editProduct
+};
