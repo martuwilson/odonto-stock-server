@@ -141,10 +141,42 @@ const deleteProduct = async (req, res) => {
     }
   };
 
+////////////////////////////////
+// Get product by ID
+const getProductById = async (req, res) => {
+    const { id } = req.params;
+  
+    if (!id) {
+      return res.status(400).json({ error: "ID del producto es requerido." });
+    }
+  
+    try {
+      const query = `
+        SELECT * FROM stock
+        WHERE id = $1;
+      `;
+  
+      const result = await pool.query(query, [id]);
+  
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "Producto no encontrado." });
+      }
+  
+      res.status(200).json({
+        message: "Producto encontrado exitosamente.",
+        product: result.rows[0],
+      });
+    } catch (error) {
+      console.error("Error al obtener el producto:", error.message);
+      res.status(500).json({ error: "Error al obtener el producto." });
+    }
+  };
+
 export {
     createProductTable,
     createProduct,
     getAllProducts,
     editProduct,
-    deleteProduct
+    deleteProduct,
+    getProductById
 };

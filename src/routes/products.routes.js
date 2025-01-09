@@ -1,5 +1,5 @@
 import express from 'express';
-import { createProductTable, createProduct, getAllProducts, editProduct, deleteProduct } from '../controllers/products.controllers.js';
+import { createProductTable, createProduct, getAllProducts, editProduct, deleteProduct, getProductById} from '../controllers/products.controllers.js';
 import { seedProducts } from '../controllers/seed.controller.js';
 
 const router = express.Router();
@@ -10,6 +10,7 @@ router.post("/create", createProduct);
 
 router.get("/all-products", getAllProducts);
 
+router.get('/product/:id', getProductById);
 
 router.put("/edit/:id", editProduct);
 
