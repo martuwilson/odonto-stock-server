@@ -1,4 +1,22 @@
 import pool from "../database/index.js";
+import Joi from "joi";
+
+const productSchema = Joi.object({
+    product_name: Joi.string().min(1).max(255).required().messages({
+        "string.empty": "El nombre del producto no puede estar vacío.",
+        "any.required": "El nombre del producto es obligatorio.",
+        "string.max": "El nombre del producto no puede superar los 255 caracteres."
+    }),
+    expiration_date: Joi.date().required().messages({
+        "any.required": "La fecha de expiración es obligatoria.",
+        "date.base": "La fecha de expiración debe ser válida."
+    }),
+    quantity: Joi.number().integer().min(1).required().messages({
+        "any.required": "La cantidad es obligatoria.",
+        "number.base": "La cantidad debe ser un número.",
+        "number.min": "La cantidad debe ser al menos 1."
+    })
+});
 
 ////////////////////////////////
 //Create product table with PostgreSQL
@@ -29,27 +47,28 @@ const createProductTable = async (req, res) => {
 ////////////////////////////////
 // Create a product
 const createProduct = async (req, res) => {
-    const { product_name, expiration_date, quantity } = req.body;
+  const { error } = productSchema.validate(req.body);
+  if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+  }
 
-    if(!product_name || !expiration_date || !quantity) {
-        return res.status(400).json({ error: "Todos los campos son obligatorios." });
-    }
+  const { product_name, expiration_date, quantity } = req.body;
 
-    try {
-        const newProduct = await pool.query(
-            `INSERT INTO stock (product_name, expiration_date, quantity) VALUES ($1, $2, $3) RETURNING *`,
-            [product_name, expiration_date, quantity]
-        );
-        res.status(201).json({
-            message: "Producto creado correctamente.",
-            product: newProduct.rows[0]
-        });
-        
-    } catch (error) {
-        console.error("Error al insertar producto:", error.message);
-        res.status(500).json({ error: "Error al insertar producto." });
-    }
+  try {
+      const newProduct = await pool.query(
+          `INSERT INTO stock (product_name, expiration_date, quantity) VALUES ($1, $2, $3) RETURNING *`,
+          [product_name, expiration_date, quantity]
+      );
+      res.status(201).json({
+          message: "Producto creado correctamente.",
+          product: newProduct.rows[0],
+      });
+  } catch (error) {
+      console.error("Error al insertar producto:", error.message);
+      res.status(500).json({ error: "Error al insertar producto." });
+  }
 };
+
 ////////////////////////////////
 // GET all products
 const getAllProducts = async (req, res) => {
